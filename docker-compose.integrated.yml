@@ -1,0 +1,114 @@
+# LLM Graph Builder - Integrated with existing Neo4j
+# This version connects to the existing neo4j-graph-db container
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/code
+    environment:
+      # Neo4j Connection - using existing container
+      - NEO4J_URI=neo4j://neo4j-graph-db:7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=neo4j123
+      - NEO4J_DATABASE=neo4j
+      
+      # LLM API Keys (set these in backend/.env)
+      - OPENAI_API_KEY=${OPENAI_API_KEY-}
+      - DIFFBOT_API_KEY=${DIFFBOT_API_KEY-}
+      
+      # Embedding Configuration
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL-all-MiniLM-L6-v2}
+      - IS_EMBEDDING=${IS_EMBEDDING-true}
+      - ENTITY_EMBEDDING=${ENTITY_EMBEDDING-false}
+      
+      # Performance Tuning
+      - KNN_MIN_SCORE=${KNN_MIN_SCORE-0.94}
+      - NUMBER_OF_CHUNKS_TO_COMBINE=${NUMBER_OF_CHUNKS_TO_COMBINE-6}
+      - UPDATE_GRAPH_CHUNKS_PROCESSED=${UPDATE_GRAPH_CHUNKS_PROCESSED-20}
+      - MAX_TOKEN_CHUNK_SIZE=${MAX_TOKEN_CHUNK_SIZE-2000}
+      
+      # Optional: LangChain tracing
+      - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT-}
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2-}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT-}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY-}
+      
+      # Model Configurations
+      - LLM_MODEL_CONFIG_openai_gpt_4o=${LLM_MODEL_CONFIG_openai_gpt_4o-gpt-4o-2024-11-20,openai_api_key}
+      - LLM_MODEL_CONFIG_openai_gpt_4o_mini=${LLM_MODEL_CONFIG_openai_gpt_4o_mini-gpt-4o-mini-2024-07-18,openai_api_key}
+      - LLM_MODEL_CONFIG_diffbot=${LLM_MODEL_CONFIG_diffbot-diffbot,diffbot_api_key}
+      
+    container_name: llm-backend
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "8001:8000"  # Using 8001 to avoid conflicts
+    networks:
+      - neo4j-shared
+      - llm-internal
+    depends_on:
+      - neo4j-connectivity-check
+
+  frontend:
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_BACKEND_API_URL=http://llm-backend:8000
+        - VITE_REACT_APP_SOURCES=local,youtube,wiki,s3,web
+        - VITE_GOOGLE_CLIENT_ID=
+        - VITE_BLOOM_URL=https://workspace-preview.neo4j.io/workspace/explore?connectURL={CONNECT_URL}&search=Show+me+a+graph&featureGenAISuggestions=true&featureGenAISuggestionsInternal=true
+        - VITE_TIME_PER_PAGE=50
+        - VITE_CHUNK_SIZE=5242880
+        - VITE_LARGE_FILE_SIZE=5242880
+        - VITE_ENV=DEV
+        - VITE_CHAT_MODES=vector,graph+vector,graph,fulltext
+        - VITE_BATCH_SIZE=2
+        - VITE_LLM_MODELS=diffbot,openai_gpt_3.5,openai_gpt_4o
+        - VITE_LLM_MODELS_PROD=openai_gpt_4o,openai_gpt_4o_mini,diffbot,gemini_1.5_flash
+        - VITE_AUTH0_DOMAIN=
+        - VITE_AUTH0_CLIENT_ID=
+        - VITE_SKIP_AUTH=true
+        - VITE_CHUNK_OVERLAP=20
+        - VITE_TOKENS_PER_CHUNK=100
+        - VITE_CHUNK_TO_COMBINE=1
+        - VITE_SEGMENT_API_URL=
+        - VITE_FRONTEND_HOSTNAME=localhost:8080
+        - DEPLOYMENT_ENV=local
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    env_file:
+      - ./frontend/.env
+    container_name: llm-frontend
+    ports:
+      - "3002:8080"  # Frontend available at localhost:3002
+    networks:
+      - llm-internal
+
+  # Service to check if Neo4j is accessible
+  neo4j-connectivity-check:
+    image: curlimages/curl:latest
+    command: >
+      sh -c "
+        echo 'Checking Neo4j connectivity...';
+        until curl -f http://neo4j-graph-db:7474\; do
+          echo 'Waiting for Neo4j...';
+          sleep 2;
+        done;
+        echo 'Neo4j is accessible!';
+      "
+    networks:
+      - neo4j-shared
+    depends_on: []
+
+networks:
+  neo4j-shared:
+    external: true
+  llm-internal:
+    driver: bridge
