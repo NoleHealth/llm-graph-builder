@@ -27,10 +27,24 @@ import { chatModeLables, EXPIRATION_DAYS } from './Constants';
 
 // Get the Url
 export const url = () => {
-  let url = window.location.href.replace('5173', '8000');
-  if (process.env.VITE_BACKEND_API_URL) {
-    url = process.env.VITE_BACKEND_API_URL;
+  // Use environment variable with proper fallback to host-exposed port
+  let url = 'http://localhost:8001';  // Default fallback for browser access
+  
+  try {
+    if (process.env.VITE_BACKEND_API_URL && process.env.VITE_BACKEND_API_URL.trim() !== '') {
+      url = process.env.VITE_BACKEND_API_URL;
+      console.log('Using VITE_BACKEND_API_URL:', url);
+    } else {
+      console.log('VITE_BACKEND_API_URL not set, using default:', url);
+    }
+  } catch (error) {
+    console.error('Error processing VITE_BACKEND_API_URL:', error);
+    console.log('Falling back to default URL:', url);
   }
+  
+  // Debug logging
+  console.log('Final backend URL:', url);
+  
   return !url || !url.match('/$') ? url : url.substring(0, url.length - 1);
 };
 

@@ -59,7 +59,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_BACKEND_API_URL=http://llm-backend:8000
+        - VITE_BACKEND_API_URL=http://localhost:8001
         - VITE_REACT_APP_SOURCES=local,youtube,wiki,s3,web
         - VITE_GOOGLE_CLIENT_ID=
         - VITE_BLOOM_URL=https://workspace-preview.neo4j.io/workspace/explore?connectURL={CONNECT_URL}&search=Show+me+a+graph&featureGenAISuggestions=true&featureGenAISuggestionsInternal=true

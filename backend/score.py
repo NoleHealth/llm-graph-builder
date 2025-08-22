@@ -1092,5 +1092,26 @@ async def get_schema_visualization(uri=Form(None), userName=Form(None), password
     finally:
         gc.collect()
 
+# GET endpoints for frontend compatibility
+@app.get("/sources")
+async def get_sources():
+    """
+    Returns the list of available sources as configured in environment variables
+    """
+    sources = os.environ.get('VITE_REACT_APP_SOURCES', 'local,youtube,wiki,s3,web').split(',')
+    return {"status": "Success", "data": [source.strip() for source in sources]}
+
+@app.get("/llms_models")  
+async def get_llm_models():
+    """
+    Returns the list of available LLM models as configured in environment variables
+    """
+    env = os.environ.get('VITE_ENV', 'DEV')
+    if env == 'PROD':
+        models = os.environ.get('VITE_LLM_MODELS_PROD', 'openai_gpt_4o,openai_gpt_4o_mini,diffbot,gemini_1.5_flash').split(',')
+    else:
+        models = os.environ.get('VITE_LLM_MODELS', 'diffbot,openai_gpt_3.5,openai_gpt_4o').split(',')
+    return {"status": "Success", "data": [model.strip() for model in models]}
+
 if __name__ == "__main__":
     uvicorn.run(app)

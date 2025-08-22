@@ -10,8 +10,16 @@ export default class ErrorBoundary extends React.Component<any, any> {
 
   componentDidCatch(error: Error, errorInfo: any) {
     this.setState({ ...this.state, errorMessage: error.message, errorName: error.name });
-    console.log({ error });
-    console.log({ errorInfo });
+    console.error('ErrorBoundary caught an error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error info:', errorInfo);
+    console.error('Component stack:', errorInfo.componentStack);
+    
+    // Additional debugging for environment variable issues
+    if (error.message.includes('includes') || error.message.includes('undefined')) {
+      console.error('Potential environment variable issue detected');
+      console.error('Process env:', process.env);
+    }
   }
 
   render() {
@@ -26,7 +34,7 @@ export default class ErrorBoundary extends React.Component<any, any> {
                 ? 'Please Provide The Google Client ID For GCS Source'
                 : this.state.errorName === 'InvalidCharacterError'
                   ? "We've updated our security measures. To ensure smooth access, please clear your local storage"
-                  : 'Sorry there was a problem loading this page'
+                  : `Error: ${this.state.errorMessage || 'Sorry there was a problem loading this page'}`
             }
             title='Something went wrong'
             className='mt-8'
