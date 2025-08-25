@@ -36,7 +36,20 @@ const DropdownComponent: React.FC<ReusableDropdownProps> = ({
             options: allOptions?.map((option) => {
               const label = typeof option === 'string' ? capitalizeWithUnderscore(option) : capitalize(option.label);
               const value = typeof option === 'string' ? option : option.value;
-              const isModelSupported = !isProdEnv || prodllms?.includes(value);
+              let isModelSupported = true;
+              try {
+                if (isProdEnv) {
+                  if (Array.isArray(prodllms)) {
+                    isModelSupported = prodllms.includes(value);
+                  } else {
+                    console.warn('UI/Dropdown: prodllms is not an array:', prodllms);
+                    isModelSupported = false;
+                  }
+                }
+              } catch (error) {
+                console.error('UI/Dropdown: Error checking model support:', error);
+                isModelSupported = false;
+              }
               return {
                 label: !isModelSupported ? (
                   <Tooltip type='simple' placement={isLargeDesktop ? 'left' : 'right'}>

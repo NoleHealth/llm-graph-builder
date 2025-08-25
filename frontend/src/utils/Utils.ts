@@ -235,9 +235,14 @@ export const filterData = (
   );
   // Only Document + Chunk
   // const processedEntities = entityTypes.flatMap(item => item.includes(',') ? item.split(',') : item);
+  if (!Array.isArray(graphType)) {
+    console.warn('filterData: graphType is not an array:', graphType);
+    return { filteredNodes: [], filteredRelations: [], filteredScheme: {} };
+  }
   if (graphType.includes('DocumentChunk') && !graphType.includes('Entities') && !graphType.includes('Communities')) {
     filteredNodes = allNodes.filter(
-      (node) => (node.labels.includes('Document') && node.properties.fileName) || node.labels.includes('Chunk')
+      (node) => (Array.isArray(node.labels) && node.labels.includes('Document') && node.properties.fileName) || 
+                (Array.isArray(node.labels) && node.labels.includes('Chunk'))
     );
     const nodeIds = new Set(filteredNodes.map((node) => node.id));
     filteredRelations = allRelationships.filter(
@@ -255,7 +260,10 @@ export const filterData = (
   ) {
     const entityNodes = allNodes.filter(
       (node) =>
-        !node.labels.includes('Document') && !node.labels.includes('Chunk') && !node.labels.includes('__Community__')
+        Array.isArray(node.labels) && 
+        !node.labels.includes('Document') && 
+        !node.labels.includes('Chunk') && 
+        !node.labels.includes('__Community__')
     );
     filteredNodes = entityNodes ? entityNodes : [];
     const nodeIds = new Set(filteredNodes.map((node) => node.id));
@@ -272,7 +280,7 @@ export const filterData = (
     !graphType.includes('DocumentChunk') &&
     !graphType.includes('Entities')
   ) {
-    filteredNodes = allNodes.filter((node) => node.labels.includes('__Community__'));
+    filteredNodes = allNodes.filter((node) => Array.isArray(node.labels) && node.labels.includes('__Community__'));
     const nodeIds = new Set(filteredNodes.map((node) => node.id));
     filteredRelations = allRelationships.filter(
       (rel) =>
@@ -287,9 +295,11 @@ export const filterData = (
   ) {
     filteredNodes = allNodes.filter(
       (node) =>
-        (node.labels.includes('Document') && node.properties.fileName) ||
-        node.labels.includes('Chunk') ||
-        (!node.labels.includes('Document') && !node.labels.includes('Chunk') && !node.labels.includes('__Community__'))
+        Array.isArray(node.labels) && (
+          (node.labels.includes('Document') && node.properties.fileName) ||
+          node.labels.includes('Chunk') ||
+          (!node.labels.includes('Document') && !node.labels.includes('Chunk') && !node.labels.includes('__Community__'))
+        )
     );
     const nodeIds = new Set(filteredNodes.map((node) => node.id));
     filteredRelations = allRelationships.filter(
@@ -309,8 +319,8 @@ export const filterData = (
     graphType.includes('Communities') &&
     !graphType.includes('DocumentChunk')
   ) {
-    const entityNodes = allNodes.filter((node) => !node.labels.includes('Document') && !node.labels.includes('Chunk'));
-    const communityNodes = allNodes.filter((node) => node.labels.includes('__Community__'));
+    const entityNodes = allNodes.filter((node) => Array.isArray(node.labels) && !node.labels.includes('Document') && !node.labels.includes('Chunk'));
+    const communityNodes = allNodes.filter((node) => Array.isArray(node.labels) && node.labels.includes('__Community__'));
     filteredNodes = [...entityNodes, ...communityNodes];
     const nodeIds = new Set(filteredNodes.map((node) => node.id));
     filteredRelations = allRelationships.filter(
@@ -330,9 +340,9 @@ export const filterData = (
     !graphType.includes('Entities')
   ) {
     const documentChunkNodes = allNodes.filter(
-      (node) => (node.labels.includes('Document') && node.properties.fileName) || node.labels.includes('Chunk')
+      (node) => Array.isArray(node.labels) && ((node.labels.includes('Document') && node.properties.fileName) || node.labels.includes('Chunk'))
     );
-    const communityNodes = allNodes.filter((node) => node.labels.includes('__Community__'));
+    const communityNodes = allNodes.filter((node) => Array.isArray(node.labels) && node.labels.includes('__Community__'));
     filteredNodes = [...documentChunkNodes, ...communityNodes];
     const nodeIds = new Set(filteredNodes.map((node) => node.id));
     filteredRelations = allRelationships.filter(
@@ -376,9 +386,20 @@ export const capitalize = (word: string): string => {
   return `${word[0].toUpperCase()}${word.slice(1)}`;
 };
 export const parseEntity = (entity: Entity) => {
+  if (!entity) {
+    console.warn('parseEntity: entity is undefined or null');
+    return { label: 'Entity', text: 'Unknown' };
+  }
+  
   const { labels, properties } = entity;
+  
+  if (!Array.isArray(labels)) {
+    console.warn('parseEntity: labels is not an array:', labels, 'entity:', entity);
+    return { label: 'Entity', text: properties?.id || 'Unknown' };
+  }
+  
   let [label] = labels;
-  const text = properties.id;
+  const text = properties?.id || 'Unknown';
   if (!label) {
     label = 'Entity';
   }
@@ -484,7 +505,7 @@ export const generateYouTubeLink = (url: string, startTime: string) => {
 export function isAllowedHost(url: string, allowedHosts: string[]) {
   try {
     const parsedUrl = new URL(url);
-    return allowedHosts.includes(parsedUrl.host);
+    return Array.isArray(allowedHosts) && allowedHosts.includes(parsedUrl.host);
   } catch (e) {
     return false;
   }

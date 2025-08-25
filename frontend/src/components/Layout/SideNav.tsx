@@ -94,7 +94,7 @@ const SideNav: React.FC<SideNavProps> = ({
         </SpotlightTarget>
       );
 
-      if (APP_SOURCES.includes('gcs') && position === 'left') {
+      if (Array.isArray(APP_SOURCES) && APP_SOURCES.includes('gcs') && position === 'left') {
         dataSourceItems.push(
           <SideNavigation.Item
             key='gcs'
@@ -107,7 +107,7 @@ const SideNav: React.FC<SideNavProps> = ({
         );
       }
 
-      if (APP_SOURCES.includes('s3') && position === 'left') {
+      if (Array.isArray(APP_SOURCES) && APP_SOURCES.includes('s3') && position === 'left') {
         dataSourceItems.push(
           <SideNavigation.Item
             key='s3'
@@ -124,7 +124,7 @@ const SideNav: React.FC<SideNavProps> = ({
         );
       }
 
-      if (APP_SOURCES.includes('web') && position === 'left') {
+      if (Array.isArray(APP_SOURCES) && APP_SOURCES.includes('web') && position === 'left') {
         dataSourceItems.push(
           <SideNavigation.Item
             key='web'

@@ -25,7 +25,7 @@ export default function ChatModeToggle({
   isRoot: boolean;
 }) {
   const { setchatModes, chatModes, postProcessingTasks } = useFileContext();
-  const isCommunityAllowed = postProcessingTasks.includes('enable_communities');
+  const isCommunityAllowed = Array.isArray(postProcessingTasks) && postProcessingTasks.includes('enable_communities');
   const { isGdsActive } = useCredentials();
   if (!chatModes.length) {
     setchatModes([chatModeLables['graph+vector+fulltext']]);
@@ -34,18 +34,18 @@ export default function ChatModeToggle({
   const memoizedChatModes = useMemo(() => {
     return isGdsActive && isCommunityAllowed
       ? AvailableModes
-      : AvailableModes?.filter((m) => !m.mode.includes(chatModeLables['global search+vector+fulltext']));
+      : AvailableModes?.filter((m) => !(typeof m.mode === 'string' && m.mode.includes(chatModeLables['global search+vector+fulltext'])));
   }, [isGdsActive, isCommunityAllowed]);
   const menuItems = useMemo(() => {
     return memoizedChatModes?.map((m, index) => {
       const handleModeChange = () => {
-        if (chatModes.includes(m.mode)) {
+        if (Array.isArray(chatModes) && chatModes.includes(m.mode)) {
           if (chatModes.length === 1) {
             return;
           }
-          setchatModes((prev) => prev.filter((i) => i !== m.mode));
+          setchatModes((prev) => Array.isArray(prev) ? prev.filter((i) => i !== m.mode) : []);
         } else {
-          setchatModes((prev) => [...prev, m.mode]);
+          setchatModes((prev) => Array.isArray(prev) ? [...prev, m.mode] : [m.mode]);
         }
       };
       return {
@@ -53,9 +53,9 @@ export default function ChatModeToggle({
         title: (
           <div>
             <Typography variant='subheading-small'>
-              {chatModeReadableLables[m.mode].includes('+')
+              {typeof chatModeReadableLables[m.mode] === 'string' && chatModeReadableLables[m.mode].includes('+')
                 ? capitalizeWithPlus(chatModeReadableLables[m.mode])
-                : capitalize(chatModeReadableLables[m.mode])}
+                : capitalize(chatModeReadableLables[m.mode] || '')}
             </Typography>
             <div>
               <Typography variant='body-small'>{m.description}</Typography>
@@ -69,7 +69,7 @@ export default function ChatModeToggle({
         disabledCondition: false,
         description: (
           <span>
-            {chatModes.includes(m.mode) && (
+            {Array.isArray(chatModes) && chatModes.includes(m.mode) && (
               <>
                 <StatusIndicator type='success' /> {chatModeLables.selected}
               </>

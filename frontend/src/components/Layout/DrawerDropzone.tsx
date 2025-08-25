@@ -29,18 +29,44 @@ const DrawerDropzone: React.FC<DrawerProps> = ({
   const { loginWithRedirect } = useAuth0();
   const isLargeDesktop = useMediaQuery('(min-width:1440px)');
   const { filesData } = useFileContext();
-  const isYoutubeOnly = useMemo(
-    () => APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('wiki') && !APP_SOURCES.includes('web'),
-    []
-  );
-  const isWikipediaOnly = useMemo(
-    () => APP_SOURCES.includes('wiki') && !APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('web'),
-    []
-  );
-  const isWebOnly = useMemo(
-    () => APP_SOURCES.includes('web') && !APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('wiki'),
-    []
-  );
+  const isYoutubeOnly = useMemo(() => {
+    try {
+      if (!Array.isArray(APP_SOURCES)) {
+        console.warn('DrawerDropzone: APP_SOURCES is not an array:', APP_SOURCES);
+        return false;
+      }
+      return APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('wiki') && !APP_SOURCES.includes('web');
+    } catch (error) {
+      console.error('DrawerDropzone: Error checking isYoutubeOnly:', error);
+      return false;
+    }
+  }, []);
+  
+  const isWikipediaOnly = useMemo(() => {
+    try {
+      if (!Array.isArray(APP_SOURCES)) {
+        console.warn('DrawerDropzone: APP_SOURCES is not an array:', APP_SOURCES);
+        return false;
+      }
+      return APP_SOURCES.includes('wiki') && !APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('web');
+    } catch (error) {
+      console.error('DrawerDropzone: Error checking isWikipediaOnly:', error);
+      return false;
+    }
+  }, []);
+  
+  const isWebOnly = useMemo(() => {
+    try {
+      if (!Array.isArray(APP_SOURCES)) {
+        console.warn('DrawerDropzone: APP_SOURCES is not an array:', APP_SOURCES);
+        return false;
+      }
+      return APP_SOURCES.includes('web') && !APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('wiki');
+    } catch (error) {
+      console.error('DrawerDropzone: Error checking isWebOnly:', error);
+      return false;
+    }
+  }, []);
   if (!isLargeDesktop) {
     return null;
   }
@@ -84,12 +110,12 @@ const DrawerDropzone: React.FC<DrawerProps> = ({
                 <div className={`${!connectionStatus ? 'cursor-not-allowed' : ''} h-full`}>
                   <div className={`resource-sections ${!connectionStatus ? 'blur-sm pointer-events-none' : ''}`}>
                     <Flex gap='6' className='h-full source-container'>
-                      {APP_SOURCES.includes('local') && (
+                      {Array.isArray(APP_SOURCES) && APP_SOURCES.includes('local') && (
                         <div className='px-6 outline-dashed outline-2 outline-offset-2 outline-gray-100 mt-3 imageBg'>
                           <DropZone />
                         </div>
                       )}
-                      {APP_SOURCES.some((source) => ['youtube', 'wiki', 'web'].includes(source)) && (
+                      {Array.isArray(APP_SOURCES) && APP_SOURCES.some((source) => ['youtube', 'wiki', 'web'].includes(source)) && (
                         <div className='outline-dashed imageBg w-[245px]'>
                           <GenericButton openModal={toggleGenericModal} />
                           <GenericModal
@@ -101,7 +127,7 @@ const DrawerDropzone: React.FC<DrawerProps> = ({
                           />
                         </div>
                       )}
-                      {APP_SOURCES.includes('s3') && (
+                      {Array.isArray(APP_SOURCES) && APP_SOURCES.includes('s3') && (
                         <div className='outline-dashed imageBg w-[245px]'>
                           <S3Component openModal={toggleS3Modal} />
                           <Suspense fallback={<FallBackDialog />}>
@@ -109,7 +135,7 @@ const DrawerDropzone: React.FC<DrawerProps> = ({
                           </Suspense>
                         </div>
                       )}
-                      {APP_SOURCES.includes('gcs') && (
+                      {Array.isArray(APP_SOURCES) && APP_SOURCES.includes('gcs') && (
                         <div className='outline-dashed imageBg w-[245px]'>
                           <GCSButton openModal={toggleGCSModal} />
                           <Suspense fallback={<FallBackDialog />}>
@@ -144,12 +170,12 @@ const DrawerDropzone: React.FC<DrawerProps> = ({
             <div className={`h-full cursor-pointer`} onClick={() => loginWithRedirect()}>
               <div className={`resource-sections blur-sm pointer-events-none`}>
                 <Flex gap='6' className='h-full source-container'>
-                  {APP_SOURCES.includes('local') && (
+                  {Array.isArray(APP_SOURCES) && APP_SOURCES.includes('local') && (
                     <div className='px-6 outline-dashed outline-2 outline-offset-2 outline-gray-100 mt-3 imageBg'>
                       <DropZone />
                     </div>
                   )}
-                  {APP_SOURCES.some((source) => ['youtube', 'wiki', 'web'].includes(source)) && (
+                  {Array.isArray(APP_SOURCES) && APP_SOURCES.some((source) => ['youtube', 'wiki', 'web'].includes(source)) && (
                     <div className='outline-dashed imageBg w-[245px]'>
                       <GenericButton openModal={toggleGenericModal} />
                       <GenericModal
@@ -161,7 +187,7 @@ const DrawerDropzone: React.FC<DrawerProps> = ({
                       />
                     </div>
                   )}
-                  {APP_SOURCES.includes('s3') && (
+                  {Array.isArray(APP_SOURCES) && APP_SOURCES.includes('s3') && (
                     <div className='outline-dashed imageBg w-[245px]'>
                       <S3Component openModal={toggleS3Modal} />
                       <Suspense fallback={<FallBackDialog />}>
@@ -169,7 +195,7 @@ const DrawerDropzone: React.FC<DrawerProps> = ({
                       </Suspense>
                     </div>
                   )}
-                  {APP_SOURCES.includes('gcs') && (
+                  {Array.isArray(APP_SOURCES) && APP_SOURCES.includes('gcs') && (
                     <div className='outline-dashed imageBg w-[245px]'>
                       <GCSButton openModal={toggleGCSModal} />
                       <Suspense fallback={<FallBackDialog />}>

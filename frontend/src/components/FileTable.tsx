@@ -879,7 +879,7 @@ const FileTable: ForwardRefRenderFunction<ChildRef, FileTableProps> = (props, re
       );
       if (err instanceof Error) {
         const error = JSON.parse(err.message);
-        if (Object.keys(error).includes('fileName')) {
+        if (error && typeof error === 'object' && Object.keys(error).includes('fileName')) {
           const { message } = error;
           showErrorToast(message);
         }

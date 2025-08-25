@@ -15,6 +15,10 @@ const EntitiesInfo: FC<EntitiesProps> = ({ loading, mode, graphonly_entities, in
   const [loadingGraphView, setLoadingGraphView] = useState(false);
 
   const groupedEntities = useMemo<{ [key: string]: GroupedEntity }>(() => {
+    if (!Array.isArray(infoEntities)) {
+      console.warn('EntitiesInfo: infoEntities is not an array:', infoEntities);
+      return {};
+    }
     const items = infoEntities.reduce(
       (acc, entity) => {
         const { label, text } = parseEntity(entity);
@@ -31,8 +35,16 @@ const EntitiesInfo: FC<EntitiesProps> = ({ loading, mode, graphonly_entities, in
   }, [infoEntities]);
   const labelCounts = useMemo(() => {
     const counts: { [label: string]: number } = {};
-    for (let index = 0; index < infoEntities?.length; index++) {
+    if (!Array.isArray(infoEntities)) {
+      console.warn('EntitiesInfo: infoEntities is not an array for labelCounts:', infoEntities);
+      return counts;
+    }
+    for (let index = 0; index < infoEntities.length; index++) {
       const entity = infoEntities[index];
+      if (!entity || !entity.labels) {
+        console.warn('EntitiesInfo: entity or entity.labels is undefined:', entity);
+        continue;
+      }
       const { labels } = entity;
       const [label] = labels;
       counts[label] = counts[label] ? counts[label] + 1 : 1;
@@ -110,9 +122,9 @@ const EntitiesInfo: FC<EntitiesProps> = ({ loading, mode, graphonly_entities, in
                       {Array.from(entity.texts)
                         .slice(0, 3)
                         .map((text, idx) => {
-                          const matchingEntity = infoEntities.find(
-                            (e) => e.labels.includes(label) && parseEntity(e).text === text
-                          );
+                          const matchingEntity = Array.isArray(infoEntities) ? infoEntities.find(
+                            (e) => e && Array.isArray(e.labels) && e.labels.includes(label) && parseEntity(e).text === text
+                          ) : undefined;
                           const textId = matchingEntity?.element_id;
                           return (
                             <span key={idx}>

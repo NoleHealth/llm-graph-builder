@@ -207,18 +207,44 @@ const PageLayout: React.FC = () => {
   const { user, isAuthenticated } = useAuth0();
   const { cancel } = useSpeechSynthesis();
   const { setActiveSpotlight } = useSpotlightContext();
-  const isYoutubeOnly = useMemo(
-    () => APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('wiki') && !APP_SOURCES.includes('web'),
-    []
-  );
-  const isWikipediaOnly = useMemo(
-    () => APP_SOURCES.includes('wiki') && !APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('web'),
-    []
-  );
-  const isWebOnly = useMemo(
-    () => APP_SOURCES.includes('web') && !APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('wiki'),
-    []
-  );
+  const isYoutubeOnly = useMemo(() => {
+    try {
+      if (!Array.isArray(APP_SOURCES)) {
+        console.warn('PageLayout: APP_SOURCES is not an array:', APP_SOURCES);
+        return false;
+      }
+      return APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('wiki') && !APP_SOURCES.includes('web');
+    } catch (error) {
+      console.error('PageLayout: Error checking isYoutubeOnly:', error);
+      return false;
+    }
+  }, []);
+  
+  const isWikipediaOnly = useMemo(() => {
+    try {
+      if (!Array.isArray(APP_SOURCES)) {
+        console.warn('PageLayout: APP_SOURCES is not an array:', APP_SOURCES);
+        return false;
+      }
+      return APP_SOURCES.includes('wiki') && !APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('web');
+    } catch (error) {
+      console.error('PageLayout: Error checking isWikipediaOnly:', error);
+      return false;
+    }
+  }, []);
+  
+  const isWebOnly = useMemo(() => {
+    try {
+      if (!Array.isArray(APP_SOURCES)) {
+        console.warn('PageLayout: APP_SOURCES is not an array:', APP_SOURCES);
+        return false;
+      }
+      return APP_SOURCES.includes('web') && !APP_SOURCES.includes('youtube') && !APP_SOURCES.includes('wiki');
+    } catch (error) {
+      console.error('PageLayout: Error checking isWebOnly:', error);
+      return false;
+    }
+  }, []);
   const { messages, setClearHistoryData, clearHistoryData, setMessages, setIsDeleteChatLoading } = useMessageContext();
   const isFirstTimeUser = useMemo(() => localStorage.getItem('neo4j.connection') === null, []);
 
@@ -697,12 +723,12 @@ const PageLayout: React.FC = () => {
         </div>
       ) : (
         <>
-          {APP_SOURCES.includes('gcs') && (
+          {Array.isArray(APP_SOURCES) && APP_SOURCES.includes('gcs') && (
             <Suspense fallback={<FallBackDialog />}>
               <GCSModal openGCSModal={toggleGCSModal} open={showGCSModal} hideModal={toggleGCSModal} />
             </Suspense>
           )}
-          {APP_SOURCES.includes('s3') && (
+          {Array.isArray(APP_SOURCES) && APP_SOURCES.includes('s3') && (
             <Suspense fallback={<FallBackDialog />}>
               <S3Modal hideModal={toggleS3Modal} open={shows3Modal} />
             </Suspense>

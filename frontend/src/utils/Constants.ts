@@ -38,6 +38,11 @@ export const llms = safeEnvSplit(
   ['diffbot', 'openai_gpt_3.5', 'openai_gpt_4o']
 );
 
+// Debug logging for key constants
+console.log('Constants.ts: APP_SOURCES:', APP_SOURCES);
+console.log('Constants.ts: llms:', llms);
+console.log('Constants.ts: prodllms:', typeof window !== 'undefined' ? 'browser context' : 'server context');
+
 export const supportedLLmsForRagas = [
   'openai_gpt_4',
   'openai_gpt_4o',
@@ -80,6 +85,8 @@ export const prodllms = safeEnvSplit(
   process.env.VITE_LLM_MODELS_PROD,
   ['openai_gpt_4o', 'openai_gpt_4o_mini', 'diffbot', 'gemini_1.5_flash']
 );
+
+console.log('Constants.ts: prodllms:', prodllms);
 
 export const chatModeLables = {
   vector: 'vector',

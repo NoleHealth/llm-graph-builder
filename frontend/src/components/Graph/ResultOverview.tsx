@@ -86,7 +86,7 @@ const ResultOverview: React.FunctionComponent<OverViewProps> = ({
   // On Node Click, highlighting the nodes and deactivating any active relationships
   const handleNodeClick = (nodeLabel: string) => {
     const updatedNodes = nodes.map((node) => {
-      const isActive = node.labels.includes(nodeLabel);
+      const isActive = Array.isArray(node.labels) && node.labels.includes(nodeLabel);
       return {
         ...node,
         selected: isActive,
